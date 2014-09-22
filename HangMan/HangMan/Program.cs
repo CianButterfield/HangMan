@@ -8,6 +8,8 @@ namespace HangMan
 {
     class Program
     {
+        public static string name = "";
+
         static void Main(string[] args)
         {  
             Console.Title = "HANGMAN";
@@ -31,7 +33,7 @@ namespace HangMan
         {
             //Get name, write hello & explanation
             Console.Write("Enter your name: ");
-            string name = Console.ReadLine();
+            name = Console.ReadLine();
             Console.WriteLine("Hello, " + name + ".\nYou will be guessing letters of a word until you guess 7 incorrect letters, or  you guess all of the letters");
         }
 
@@ -167,7 +169,56 @@ namespace HangMan
                     playing = false;
                 }
             }
+
+
+            //give the user a moment to read
+            System.Threading.Thread.Sleep(2500);
+            //add high score
+            AddHighScore(7 - guessCount);
+            //display highscores
+            DisplayHighScores();
+
             PlayAgain();
+        }
+
+        static void AddHighScore(int playerScore)
+        {
+
+            //create a gateway to the database
+            CianEntities db = new CianEntities();
+
+            //create a new high score object
+            // fill it with our user's data
+            HighScore newHighScore = new HighScore();
+            newHighScore.DateCreated = DateTime.Now;
+            newHighScore.Game = "Hangman";
+            newHighScore.Name = name;
+            newHighScore.Score = playerScore;
+
+            //add it to the database
+            db.HighScores.Add(newHighScore);
+
+            //save our changes
+            db.SaveChanges();
+        }
+
+        static void DisplayHighScores()
+        {
+            //clear the console
+            Console.Clear();
+            Console.Title = "ΦHangman High ScoresΦ";
+            Console.WriteLine("Hangman High Scores");
+            Console.WriteLine("≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡");
+
+            //create a new connection to the database
+            CianEntities db = new CianEntities();
+            //get the high score list
+            List<HighScore> highScoreList = db.HighScores.Where(x => x.Game == "Hangman").OrderBy(x => x.Score).Take(10).ToList();
+
+            foreach (HighScore highScore in highScoreList)
+            {
+                Console.WriteLine("{0}. {1} - {2}", highScoreList.IndexOf(highScore) + 1, highScore.Name, highScore.Score);
+            }
         }
     }
 }
